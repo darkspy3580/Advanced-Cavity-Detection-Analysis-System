@@ -60,7 +60,7 @@ class CavityAnalyzer:
                     elif 'nip' in folder_name or 'nip' in file_name_lower:
                         nip_images.append(file_path)
                     else:
-                        # If unclear, ask user or use a default classification
+                        # If unclear, ask user or use a default clustering
                         if len(mip_images) <= len(nip_images):
                             mip_images.append(file_path)
                         else:
@@ -129,7 +129,7 @@ def main():
     if 'analyzer' not in st.session_state:
         st.session_state.analyzer = CavityAnalyzer()
     
-    tab1, tab2, tab3, tab4 = st.tabs(["Upload & Process Images", "Image Analysis", "Cavity Classification", "Results & Visualization"])
+    tab1, tab2, tab3, tab4 = st.tabs(["Upload & Process Images", "Image Analysis", "Cavity clustering", "Results & Visualization"])
     
     with tab1:
         upload_and_process_images()
@@ -142,15 +142,15 @@ def main():
     
     with tab3:
         if 'analysis_results' in st.session_state:
-            cavity_classification()
+            cavity_clustering()
         else:
             st.warning("Please analyze images first")
     
     with tab4:
-        if 'classification_results' in st.session_state:
+        if 'clustering_results' in st.session_state:
             results_visualization()
         else:
-            st.warning("Please complete cavity classification first")
+            st.warning("Please complete cavity clustering first")
 
 def upload_and_process_images():
     st.header("Upload & Process Images")
@@ -597,11 +597,11 @@ def display_detailed_comparison(results, mip_file, nip_file):
         difference = mip_data['cavity_count'] - nip_data['cavity_count']
         st.metric("Difference", difference, delta=difference)
 
-def cavity_classification():
-    st.header("Cavity Classification")
+def cavity_clustering():
+    st.header("Cavity clustering")
     
     if 'all_features' not in st.session_state or not st.session_state.all_features:
-        st.error("No cavity features available for classification")
+        st.error("No cavity features available for clustering")
         return
     
     features = st.session_state.all_features
@@ -614,11 +614,11 @@ def cavity_classification():
     st.write(f"Total cavities detected: {len(df)}")
     st.dataframe(df.describe(), use_container_width=True)
     
-    # Classification settings
-    st.subheader("Classification Settings")
+    # clustering settings
+    st.subheader(" Settings")
     n_clusters = st.slider("Number of cavity types", 2, 5, 3)
     
-    if st.button("Perform Classification", type="primary"):
+    if st.button("Perform clustering", type="primary"):
         # Feature extraction and scaling
         feature_cols = ["Area", "Perimeter", "Aspect_Ratio", "Extent", "Solidity", "Circularity"]
         X = df[feature_cols]
@@ -640,19 +640,19 @@ def cavity_classification():
         
         df['Cavity_Type'] = df['Cavity_Cluster'].map(cluster_to_type)
         
-        # Store classification results
-        st.session_state.classification_results = df
+        # Store clustering results
+        st.session_state.clustering_results = df
         st.session_state.cluster_centers = kmeans.cluster_centers_
         st.session_state.scaler = scaler
         st.session_state.feature_cols = feature_cols
         
-        st.success("✅ Classification Complete!")
+        st.success("✅ clustering Complete!")
         
-        # Display classification results
-        display_classification_results(df)
+        # Display clustering results
+        display_clustering_results(df)
 
-def display_classification_results(df):
-    st.subheader("Classification Results")
+def display_clustering_results(df):
+    st.subheader(" clustering Results")
     
     # Type counts
     type_counts = df['Cavity_Type'].value_counts()
@@ -662,32 +662,32 @@ def display_classification_results(df):
         with cols[i]:
             st.metric(cavity_type, count)
     
-    # Classification by image type
-    st.subheader("Classification by Image Type")
+    # clustering by image type
+    st.subheader("clustering by Image Type")
     crosstab = pd.crosstab(df['Label'], df['Cavity_Type'])
     st.dataframe(crosstab, use_container_width=True)
     
     # Detailed results table
-    st.subheader("Detailed Classification Results")
+    st.subheader("Detailed clustering Results")
     st.dataframe(df, use_container_width=True)
     
     # Download results
     csv = df.to_csv(index=False)
     st.download_button(
-        label="Download Classification Results CSV",
+        label="Download clustering Results CSV",
         data=csv,
-        file_name="cavity_classification_results.csv",
+        file_name="cavity_clustering_results.csv",
         mime="text/csv"
     )
 
 def results_visualization():
     st.header("Results & Visualization")
     
-    if 'classification_results' not in st.session_state:
-        st.error("No classification results available")
+    if 'clustering_results' not in st.session_state:
+        st.error("No clustering results available")
         return
     
-    df = st.session_state.classification_results
+    df = st.session_state.clustering_results
     
     # Comprehensive charts and graphs
     st.subheader("Cavity Type Distribution")
