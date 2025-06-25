@@ -7,4 +7,5 @@ matplotlib
 seaborn
 scikit-learn
 Pillow
+libgl1
 
